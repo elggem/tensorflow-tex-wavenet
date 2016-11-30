@@ -11,17 +11,17 @@ import time
 
 import tensorflow as tf
 
-from wavenet import WaveNetModel, TextReader
+from wavenet import WaveNetModel, CSVReader
 
 BATCH_SIZE = 1
-DATA_DIRECTORY = './data'
+DATA_DIRECTORY = './data/audrey'
 LOGDIR_ROOT = './logdir'
 CHECKPOINT_EVERY = 500
 NUM_STEPS = 4000
 LEARNING_RATE = 0.001
 WAVENET_PARAMS = './wavenet_params.json'
 STARTED_DATESTRING = "{0:%Y-%m-%dT%H-%M-%S}".format(datetime.now())
-SAMPLE_SIZE = 1000
+SAMPLE_SIZE = 50
 L2_REGULARIZATION_STRENGTH = 0
 
 
@@ -56,7 +56,7 @@ def get_arguments():
     parser.add_argument('--wavenet_params', type=str, default=WAVENET_PARAMS,
                         help='JSON file with the network parameters.')
     parser.add_argument('--sample_size', type=int, default=SAMPLE_SIZE,
-                        help='Concatenate and cut text samples to this many '
+                        help='Concatenate and cut data samples to this many '
                         'samples.')
     parser.add_argument('--l2_regularization_strength', type=float,
                         default=L2_REGULARIZATION_STRENGTH,
@@ -167,13 +167,13 @@ def main():
     # Create coordinator.
     coord = tf.train.Coordinator()
 
-    # Load raw text.
+    # Load raw data.
     with tf.name_scope('create_inputs'):
-        reader = TextReader(
+        reader = CSVReader(
             args.data_dir,
             coord,
             sample_size=args.sample_size)
-        text_batch = reader.dequeue(args.batch_size)
+        data_batch = reader.dequeue(args.batch_size)
 
     # Create network.
     net = WaveNetModel(
@@ -187,7 +187,7 @@ def main():
         use_biases=wavenet_params["use_biases"])
     if args.l2_regularization_strength == 0:
         args.l2_regularization_strength = None
-    loss = net.loss(text_batch, args.l2_regularization_strength)
+    loss = net.loss(data_batch, args.l2_regularization_strength)
     optimizer = tf.train.AdamOptimizer(learning_rate=args.learning_rate)
     trainable = tf.trainable_variables()
     optim = optimizer.minimize(loss, var_list=trainable)

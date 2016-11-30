@@ -14,20 +14,23 @@ def find_files(directory, pattern='*.txt'):
             files.append(os.path.join(root, filename))
     return files
 
-def _read_text(filename):
+def _read_lines(filename):
   with tf.gfile.GFile(filename, "r") as f:
-    return list(f.read().decode("utf-8").replace("\n", ""))
+    lines = f.read().decode("utf-8").split("\n")
+    return lines
 
-def load_generic_text(directory):
+def load_csv(directory):
     '''Generator that yields text raw from the directory.'''
     files = find_files(directory)
     for filename in files:
-        text = _read_text(filename)        
-        for index, item in enumerate(text):
-            text[index] = ord(text[index])
-        text = np.array(text, dtype='float32')
-        text = text.reshape(-1, 1)
-        yield text, filename
+        lines = _read_lines(filename)
+        output = []
+
+        for line in lines:
+            np_array = np.array(line.split(",")).astype(np.float32)
+            output = np.concatenate([output, np_array, [-1]])
+
+        yield output
 
 
 class CSVReader(object):
@@ -58,15 +61,15 @@ class CSVReader(object):
         stop = False
         # Go through the dataset multiple times
         while not stop:
-            iterator = load_generic_text(self.text_dir)
-            for text, filename in iterator:
+            iterator = load_csv(self.text_dir)
+            for data in iterator:
                 if self.coord.should_stop():
                     self.stop_threads()
                     stop = True
                     break
                 if self.sample_size:
                     # Cut samples into fixed size pieces
-                    buffer_ = np.append(buffer_, text)
+                    buffer_ = np.append(buffer_, data)
                     while len(buffer_) > self.sample_size:
                         piece = np.reshape(buffer_[:self.sample_size], [-1, 1])
                         sess.run(self.enqueue,
@@ -74,7 +77,7 @@ class CSVReader(object):
                         buffer_ = buffer_[self.sample_size:]
                 else:
                     sess.run(self.enqueue,
-                             feed_dict={self.sample_placeholder: text})
+                             feed_dict={self.sample_placeholder: data})
 
     def stop_threads():
         for t in self.threads:
