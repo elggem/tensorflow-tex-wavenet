@@ -27,8 +27,8 @@ def load_csv(directory):
         output = []
 
         for line in lines:
-            np_array = np.array(line.split(",")).astype(np.float32)
-            output = np.concatenate([output, np_array, [-1]])
+            if len(line)>0:
+                output = np.concatenate([output, np.array(line.split(","),dtype=np.float32), [-1]])
 
         yield output
 
