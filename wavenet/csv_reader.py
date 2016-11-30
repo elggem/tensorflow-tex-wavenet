@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 
-def find_files(directory, pattern='*.txt'):
+def find_files(directory, pattern='*.csv'):
     '''Recursively finds all files matching the pattern.'''
     files = []
     for root, dirnames, filenames in os.walk(directory):
