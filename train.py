@@ -21,7 +21,7 @@ NUM_STEPS = 4000
 LEARNING_RATE = 0.001
 WAVENET_PARAMS = './wavenet_params.json'
 STARTED_DATESTRING = "{0:%Y-%m-%dT%H-%M-%S}".format(datetime.now())
-SAMPLE_SIZE = 50
+SAMPLE_SIZE = 1000
 L2_REGULARIZATION_STRENGTH = 0
 
 

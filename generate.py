@@ -70,13 +70,15 @@ def get_arguments():
 
     
 def write_text(waveform, filename):
-    text = waveform
-    y = []
-    for index, item in enumerate(text):
-        y.append(chr(text[index]))
-    print('Prediction is: ', ''.join(str(e) for e in y))
+    print(len(waveform))
+    #data = waveform
+    y = waveform / 255.
+    #for index, item in enumerate(data):
+    #    y.append(data[index])
+    print('Prediction is: ', ''.join(str("%.3e,"%e) for e in y))
     y = np.array(y)
-    np.savetxt(filename, y.reshape(1, y.shape[0]), delimiter="", newline="\n", fmt="%s")
+    #y = y.reshape(-1,48)
+    np.savetxt(filename, y.reshape(-1, 48), delimiter=",", newline="\n", fmt="%.10e")
     print('Updated text file at {}'.format(filename))
 
 

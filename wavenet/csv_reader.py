@@ -23,14 +23,17 @@ def load_csv(directory):
     '''Generator that yields text raw from the directory.'''
     files = find_files(directory)
     for filename in files:
-        lines = _read_lines(filename)
         output = []
-
+        lines = _read_lines(filename)
         for line in lines:
             if len(line)>0:
-                output = np.concatenate([output, np.array(line.split(","),dtype=np.float32), [-1]])
-
-        yield output
+                line += ",1,1,1,1,1"
+                line_val = np.array(line.split(","),dtype=np.float32)
+                line_val *= 255
+                output = np.append(output, line_val)
+        
+        yield output.reshape((-1, 1)) 
+        #yield output
 
 
 class CSVReader(object):
@@ -63,6 +66,7 @@ class CSVReader(object):
         while not stop:
             iterator = load_csv(self.text_dir)
             for data in iterator:
+                #print("looking at " + str(data))
                 if self.coord.should_stop():
                     self.stop_threads()
                     stop = True
