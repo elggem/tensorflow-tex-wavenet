@@ -21,6 +21,7 @@ def _read_lines(filename):
 
 def load_csv(directory):
     '''Generator that yields text raw from the directory.'''
+    # TODO: This can probably be way more efficient.
     files = find_files(directory)
     for filename in files:
         output = []
@@ -29,8 +30,8 @@ def load_csv(directory):
             if len(line)>0:
                 line += ",1,1,1,1,1"
                 line_val = np.array(line.split(","),dtype=np.float32)
-                line_val *= 255
-                output = np.append(output, line_val)
+                line_val *= np.power(2,16) # scale up for quantization of network
+                output = np.append(output, line_val.astype(np.int16))
         
         yield output.reshape((-1, 1)) 
         #yield output
