@@ -3,9 +3,9 @@
     "sample_rate": 16000,
     "dilations": [1, 2, 4, 8, 16, 32, 48, 96, 144, 192,
                   1, 2, 4, 8, 16, 32, 48, 96, 144, 192],
-    "residual_channels": 32,
-    "dilation_channels": 16,
+    "residual_channels": 48,
+    "dilation_channels": 48,
     "quantization_channels": 256,
-    "skip_channels": 256,
+    "skip_channels": 192,
     "use_biases": true
 }
