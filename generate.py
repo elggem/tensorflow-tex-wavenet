@@ -139,8 +139,7 @@ def main():
 
         # Run the WaveNet to predict the next sample.
         prediction = sess.run(outputs, feed_dict={samples: window})[0]
-        sample = np.random.choice(
-            np.arange(quantization_channels), p=prediction)
+        sample = np.argmax(prediction)
         waveform.append(sample)
 
         # Show progress only once per second.
