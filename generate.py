@@ -71,7 +71,7 @@ def get_arguments():
     
 def write_text(waveform, filename):
     #data = waveform
-    y = waveform / 255.
+    y = np.power(waveform,2) / 1024. ## transform back to original scale
     #for index, item in enumerate(data):
     #    y.append(data[index])
     print('Prediction is: ', ''.join(str("%.3e,"%e) for e in y))
