@@ -30,7 +30,7 @@ def load_csv(directory):
             if len(line)>0:
                 line += ",1,1,1,1,1"
                 line_val = np.array(line.split(","),dtype=np.float32)
-                line_val *= np.power(2,16) # scale up for quantization of network
+                line_val *= np.power(2,32) # scale up for quantization of network
                 output = np.append(output, line_val.astype(np.int16))
         
         yield output.reshape((-1, 1)) 
