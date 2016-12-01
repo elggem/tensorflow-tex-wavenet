@@ -30,7 +30,8 @@ def load_csv(directory):
             if len(line)>0:
                 line += ",1,1,1,1,1"
                 line_val = np.array(line.split(","),dtype=np.float32)
-                line_val = np.power(line_val, 0.5) * 255 # scale up and apply gradient for quantization of network
+                ## Can this be replaced by mu_law transformation from WaveNet?
+                line_val = np.power(line_val, 1.0 / 2.0) * 255 # scale up and apply gradient for quantization of network 
                 output = np.append(output, line_val)
         
         yield output.reshape((-1, 1)) 
