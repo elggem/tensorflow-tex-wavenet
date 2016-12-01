@@ -9,7 +9,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from wavenet import WaveNetModel, text_reader
+from wavenet import WaveNetModel, csv_reader
 
 SAMPLES = 16000
 LOGDIR = './logdir'
