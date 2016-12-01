@@ -31,7 +31,7 @@ def load_csv(directory):
                 line += ",1,1,1,1,1"
                 line_val = np.array(line.split(","),dtype=np.float32)
                 line_val = np.power(line_val, 0.5) * 1024 # scale up and apply gradient for quantization of network
-                output = np.append(output, line_val.astype(np.int16))
+                output = np.append(output, line_val)
         
         yield output.reshape((-1, 1)) 
         #yield output
