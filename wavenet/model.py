@@ -453,8 +453,10 @@ class WaveNetModel(object):
                 prediction = tf.reshape(raw_output, [-1, self.quantization_channels])
 
                 loss = tf.sqrt(tf.reduce_mean(tf.square(tf.sub(tf.reshape(shifted, [-1, self.quantization_channels]), prediction))))
-                reduced_loss = loss
                 
+                #loss = -tf.reduce_mean(tf.reshape(shifted, [-1, self.quantization_channels]) * tf.log(prediction))
+                reduced_loss = loss
+
                 #loss = tf.nn.softmax_cross_entropy_with_logits(prediction,tf.reshape(shifted, [-1, self.quantization_channels]))
                 #reduced_loss = tf.reduce_mean(loss)
 
