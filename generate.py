@@ -71,13 +71,17 @@ def get_arguments():
     
 def write_text(waveform, filename):
     #data = waveform
-    y = np.power(waveform / 255.0,2) ## transform back to original scale
+    #y = np.power(waveform,2) ## transform back to original scale
     #for index, item in enumerate(data):
     #    y.append(data[index])
-    print('Prediction is: ', ''.join(str("%.3e,"%e) for e in y))
-    y = np.array(y)
+    #print('Prediction is: ', ''.join(str("%.3e,"%e) for e in y))
+    #y = np.array(y)
     #y = y.reshape(-1,48)
-    np.savetxt(filename, y.reshape(1, y.shape[0]), delimiter=",", newline="\n", fmt="%.10e")
+    y = []
+    for data in waveform:
+        y.append(data/data.sum())
+
+    np.savetxt(filename, np.array(y), delimiter=",", newline="\n", fmt="%.10e")
     print('Updated text file at {}'.format(filename))
 
 
@@ -100,7 +104,7 @@ def main():
         skip_channels=wavenet_params['skip_channels'],
         use_biases=wavenet_params['use_biases'])
 
-    samples = tf.placeholder(tf.int32)
+    samples = tf.placeholder(tf.float32, shape=[None, wavenet_params['quantization_channels']], name="samples")
 
     if args.fast_generation:
         next_sample = net.predict_proba_incremental(samples)
@@ -122,7 +126,15 @@ def main():
     decode = samples
 
     quantization_channels = wavenet_params['quantization_channels']
-    waveform = [32.]
+
+    random_arr = np.abs(np.random.normal(np.ones((1,quantization_channels))))
+    random_arr[0][-1] = 0
+    random_arr[0][-2] = 0
+    random_arr[0][-3] = 0   #don't judge me, this is just an experiment.
+    random_arr[0][-4] = 0
+    random_arr[0][-5] = 0
+    random_arr /= random_arr.sum()
+    waveform = [random_arr]
 
     last_sample_timestamp = datetime.now()
     for step in range(args.samples):
@@ -138,10 +150,13 @@ def main():
             outputs = [next_sample]
 
         # Run the WaveNet to predict the next sample.
+        
+        #print(window.shape)
         prediction = sess.run(outputs, feed_dict={samples: window})[0]
-        sample = np.random.choice(
-            np.arange(quantization_channels), p=prediction)
-        waveform.append(sample)
+        #sample = np.random.choice(
+        #    np.arange(quantization_channels), p=prediction)
+        waveform.append(prediction)
+
 
         # Show progress only once per second.
         current_sample_timestamp = datetime.now()
@@ -162,7 +177,8 @@ def main():
 
     # Save the result as a wav file.
     if args.text_out_path:
-        out = sess.run(decode, feed_dict={samples: waveform})
+        samp = np.array(waveform).reshape([-1, quantization_channels])
+        out = sess.run(decode, feed_dict={samples: samp})
         write_text(out, args.text_out_path)
 
     print('Finished generating.')

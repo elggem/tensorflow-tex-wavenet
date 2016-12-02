@@ -378,10 +378,15 @@ class WaveNetModel(object):
         over a finite set of possible amplitudes.
         '''
         with tf.name_scope('one_hot_encode'):
-            encoded = tf.one_hot(
-                input_batch,
-                depth=self.quantization_channels,
-                dtype=tf.float32)
+            #encoded = tf.one_hot(
+            #    input_batch,
+            #    depth=self.quantization_channels,
+            #    dtype=tf.float32)
+
+            ## This is NOT one-hot encoding anymore, but essentially a sanity check if
+            ## the dimensionality of input data == quantization_channels.
+            print input_batch.get_shape()
+            encoded = input_batch
             shape = [self.batch_size, -1, self.quantization_channels]
             encoded = tf.reshape(encoded, shape)
         return encoded
@@ -413,17 +418,18 @@ class WaveNetModel(object):
                                       "support filter_width > 2.")
         with tf.name_scope(name):
 
-            encoded = tf.one_hot(waveform, self.quantization_channels)
+            encoded = self._one_hot(waveform)
             encoded = tf.reshape(encoded, [-1, self.quantization_channels])
             raw_output = self._create_generator(encoded)
             out = tf.reshape(raw_output, [-1, self.quantization_channels])
-            proba = tf.cast(
-                tf.nn.softmax(tf.cast(out, tf.float64)), tf.float32)
-            last = tf.slice(
-                proba,
-                [tf.shape(proba)[0] - 1, 0],
-                [1, self.quantization_channels])
-            return tf.reshape(last, [-1])
+            #proba = tf.cast(tf.nn.softmax(tf.cast(out, tf.float64)), tf.float32)
+            #last = tf.slice(
+            #    proba,
+            #    [tf.shape(proba)[0] - 1, 0],
+            #    [1, self.quantization_channels])
+            #return tf.reshape(last, [-1, self.quantization_channels])
+            print out.get_shape()
+            return out
 
     def loss(self,
              input_batch,
@@ -435,22 +441,22 @@ class WaveNetModel(object):
         '''
         with tf.name_scope(name):
             # We use this as input for the first layer.
-            encoded = self._one_hot(tf.cast(input_batch, tf.int32))
+            encoded = self._one_hot(tf.cast(input_batch, tf.float32))
             raw_output = self._create_network(encoded)
 
             with tf.name_scope('loss'):
                 # Shift original input left by one sample, which means that
                 # each output sample has to predict the next input sample.
-                shifted = tf.slice(encoded, [0, 1, 0],
-                                   [-1, tf.shape(encoded)[1] - 1, -1])
+                shifted = tf.slice(encoded, [0, 1, 0], [-1, tf.shape(encoded)[1] - 1, -1])
                 shifted = tf.pad(shifted, [[0, 0], [0, 1], [0, 0]])
 
-                prediction = tf.reshape(raw_output,
-                                        [-1, self.quantization_channels])
-                loss = tf.nn.softmax_cross_entropy_with_logits(
-                    prediction,
-                    tf.reshape(shifted, [-1, self.quantization_channels]))
-                reduced_loss = tf.reduce_mean(loss)
+                prediction = tf.reshape(raw_output, [-1, self.quantization_channels])
+
+                loss = tf.sqrt(tf.reduce_mean(tf.square(tf.sub(tf.reshape(shifted, [-1, self.quantization_channels]), prediction))))
+                reduced_loss = loss
+                
+                #loss = tf.nn.softmax_cross_entropy_with_logits(prediction,tf.reshape(shifted, [-1, self.quantization_channels]))
+                #reduced_loss = tf.reduce_mean(loss)
 
                 tf.scalar_summary('loss', reduced_loss)
 

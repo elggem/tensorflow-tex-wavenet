@@ -31,10 +31,12 @@ def load_csv(directory):
                 line += ",0,0,0,0,0" # pad to 48
                 line_val = np.array(line.split(","),dtype=np.float32)
                 ## Can this be replaced by mu_law transformation from WaveNet?
-                line_val = np.power(line_val, 1.0 / 2.0) * 255 # scale up and apply gradient for quantization of network 
-                output = np.append(output, line_val)
+                #line_val = np.power(line_val, 1.0 / 2.0) # apply gradient 
+                #line_val /= line_val.sum() # compute probability distribution.
+                yield line_val
+                #output = np.append(output, line_val)
         
-        yield output.reshape((-1, 1)) 
+        #yield output.reshape((-1, 1)) 
         #yield output
 
 
@@ -51,10 +53,10 @@ class CSVReader(object):
         self.coord = coord
         self.sample_size = sample_size
         self.threads = []
-        self.sample_placeholder = tf.placeholder(dtype=tf.float32, shape=None)
+        self.sample_placeholder = tf.placeholder(dtype=tf.float32, shape=[sample_size, 48])
         self.queue = tf.PaddingFIFOQueue(queue_size,
                                          ['float32'],
-                                         shapes=[(None, 1)])
+                                         shapes=[(None, 48)])
         self.enqueue = self.queue.enqueue([self.sample_placeholder])
 
     def dequeue(self, num_elements):
@@ -62,7 +64,7 @@ class CSVReader(object):
         return output
 
     def thread_main(self, sess):
-        buffer_ = np.array([])
+        buffer_ = []
         stop = False
         # Go through the dataset multiple times
         while not stop:
@@ -75,9 +77,11 @@ class CSVReader(object):
                     break
                 if self.sample_size:
                     # Cut samples into fixed size pieces
-                    buffer_ = np.append(buffer_, data)
+                    buffer_.append(data)
+                    #print buffer_.shape
                     while len(buffer_) > self.sample_size:
-                        piece = np.reshape(buffer_[:self.sample_size], [-1, 1])
+                        piece = np.reshape(buffer_[:self.sample_size], [-1, 48])
+                        #print(piece)
                         sess.run(self.enqueue,
                                  feed_dict={self.sample_placeholder: piece})
                         buffer_ = buffer_[self.sample_size:]

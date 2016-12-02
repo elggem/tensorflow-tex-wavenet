@@ -223,7 +223,7 @@ def main():
             loss_value, _ = sess.run([loss, optim])
             print("fin step", step)
             duration = time.time() - start_time
-            print('step {:d} - loss = {:.3f}, ({:.3f} sec/step)'
+            print('step {:d} - loss = {:.8f}, ({:.3f} sec/step)'
                   .format(step, loss_value, duration))
 
             if step % args.checkpoint_every == 0:
