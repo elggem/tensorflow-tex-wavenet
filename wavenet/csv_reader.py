@@ -26,9 +26,9 @@ def load_csv(directory):
     for filename in files:
         output = []
         lines = _read_lines(filename)
-        for line in lines:
+        for line in lines[1:]: #split first line.
             if len(line)>0:
-                line += ",0,0,0,0,0" # pad to 48
+                line += ",1,0" # pad to 60 with scaling values
                 line_val = np.array(line.split(","),dtype=np.float32)
                 ## Can this be replaced by mu_law transformation from WaveNet?
                 #line_val = np.power(line_val, 1.0 / 2.0) # apply gradient 
@@ -53,10 +53,10 @@ class CSVReader(object):
         self.coord = coord
         self.sample_size = sample_size
         self.threads = []
-        self.sample_placeholder = tf.placeholder(dtype=tf.float32, shape=[sample_size, 48])
+        self.sample_placeholder = tf.placeholder(dtype=tf.float32, shape=[sample_size, 60])
         self.queue = tf.PaddingFIFOQueue(queue_size,
                                          ['float32'],
-                                         shapes=[(None, 48)])
+                                         shapes=[(None, 60)])
         self.enqueue = self.queue.enqueue([self.sample_placeholder])
 
     def dequeue(self, num_elements):
@@ -80,7 +80,7 @@ class CSVReader(object):
                     buffer_.append(data)
                     #print buffer_.shape
                     while len(buffer_) > self.sample_size:
-                        piece = np.reshape(buffer_[:self.sample_size], [-1, 48])
+                        piece = np.reshape(buffer_[:self.sample_size], [-1, 60])
                         #print(piece)
                         sess.run(self.enqueue,
                                  feed_dict={self.sample_placeholder: piece})

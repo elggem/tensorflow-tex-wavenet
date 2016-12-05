@@ -77,9 +77,11 @@ def write_text(waveform, filename):
     #print('Prediction is: ', ''.join(str("%.3e,"%e) for e in y))
     #y = np.array(y)
     #y = y.reshape(-1,48)
-    y = []
-    for data in waveform:
-        y.append(data/data.sum())
+    y = waveform
+    # this was here for the old trails:
+    #y = []
+    #for data in waveform:
+    #    y.append(data/data.sum())
 
     np.savetxt(filename, np.array(y), delimiter=",", newline="\n", fmt="%.10e")
     print('Updated text file at {}'.format(filename))
@@ -129,10 +131,7 @@ def main():
 
     random_arr = np.abs(np.random.normal(np.ones((1,quantization_channels))))
     random_arr[0][-1] = 0
-    random_arr[0][-2] = 0
-    random_arr[0][-3] = 0   #don't judge me, this is just an experiment.
-    random_arr[0][-4] = 0
-    random_arr[0][-5] = 0
+    random_arr[0][-2] = 1
     random_arr /= random_arr.sum()
     waveform = [random_arr]
 
