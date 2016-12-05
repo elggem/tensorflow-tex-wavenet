@@ -14,7 +14,7 @@ import tensorflow as tf
 from wavenet import WaveNetModel, CSVReader
 
 BATCH_SIZE = 1
-DATA_DIRECTORY = './data/sines'
+DATA_DIRECTORY = './data/audrey'
 LOGDIR_ROOT = './logdir'
 CHECKPOINT_EVERY = 500
 NUM_STEPS = 4000
