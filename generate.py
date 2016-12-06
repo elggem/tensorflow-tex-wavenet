@@ -77,11 +77,12 @@ def write_text(waveform, filename):
     #print('Prediction is: ', ''.join(str("%.3e,"%e) for e in y))
     #y = np.array(y)
     #y = y.reshape(-1,48)
-    y = waveform
+    
+    #y = waveform
     # this was here for the old trails:
-    #y = []
-    #for data in waveform:
-    #    y.append(data/data.sum())
+    y = []
+    for data in waveform:
+        y.append(data/data.sum())
 
     np.savetxt(filename, np.array(y), delimiter=",", newline="\n", fmt="%.10e")
     print('Updated text file at {}'.format(filename))
