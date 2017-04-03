@@ -14,10 +14,10 @@ import tensorflow as tf
 from wavenet import WaveNetModel, CSVReader
 
 BATCH_SIZE = 1
-DATA_DIRECTORY = './data/audrey'
+DATA_DIRECTORY = './data/new_data'
 LOGDIR_ROOT = './logdir'
-CHECKPOINT_EVERY = 500
-NUM_STEPS = 4000
+CHECKPOINT_EVERY = 1000
+NUM_STEPS = 40000
 LEARNING_RATE = 0.001
 WAVENET_PARAMS = './wavenet_params.json'
 STARTED_DATESTRING = "{0:%Y-%m-%dT%H-%M-%S}".format(datetime.now())
@@ -195,6 +195,12 @@ def main():
     # Set up session
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
     init = tf.global_variables_initializer()
+    
+    
+    merged = tf.summary.merge_all()
+    train_writer = tf.summary.FileWriter(logdir, sess.graph)
+
+    
     sess.run(init)
 
     # Saver for storing checkpoints of the model.
@@ -215,12 +221,17 @@ def main():
 
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
     reader.start_threads(sess)
-
+    
+    
     try:
         last_saved_step = saved_global_step
         for step in range(saved_global_step + 1, args.num_steps):
             start_time = time.time()
-            loss_value, _ = sess.run([loss, optim])
+            
+            summary, loss_value, _ = sess.run([merged, loss, optim])
+            train_writer.add_summary(summary, step)
+            train_writer.flush()
+            
             print("fin step", step)
             duration = time.time() - start_time
             print('step {:d} - loss = {:.8f}, ({:.3f} sec/step)'

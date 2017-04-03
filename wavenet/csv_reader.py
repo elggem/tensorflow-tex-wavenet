@@ -29,7 +29,7 @@ def load_csv(directory):
         lines = _read_lines(filename)
         for line in lines[1:]: #split first line.
             if len(line)>0:
-                # line += ",1,0" # pad to 60 with scaling values
+                #line += ",1,0" # pad to 60 with scaling values
                 line_val = np.array(line.split(","),dtype=np.float32)
                 ## Can this be replaced by mu_law transformation from WaveNet?
                 #line_val = np.power(line_val, 1.0 / 2.0) # apply gradient
