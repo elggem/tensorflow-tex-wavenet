@@ -24,19 +24,20 @@ def load_csv(directory):
     # TODO: This can probably be way more efficient.
     files = find_files(directory)
     for filename in files:
+        print ("this is the file being read", filename)
         output = []
         lines = _read_lines(filename)
         for line in lines[1:]: #split first line.
             if len(line)>0:
-                line += ",1,0" # pad to 60 with scaling values
+                # line += ",1,0" # pad to 60 with scaling values
                 line_val = np.array(line.split(","),dtype=np.float32)
                 ## Can this be replaced by mu_law transformation from WaveNet?
-                #line_val = np.power(line_val, 1.0 / 2.0) # apply gradient 
+                #line_val = np.power(line_val, 1.0 / 2.0) # apply gradient
                 #line_val /= line_val.sum() # compute probability distribution.
                 yield line_val
                 #output = np.append(output, line_val)
-        
-        #yield output.reshape((-1, 1)) 
+
+        #yield output.reshape((-1, 1))
         #yield output
 
 
@@ -53,10 +54,10 @@ class CSVReader(object):
         self.coord = coord
         self.sample_size = sample_size
         self.threads = []
-        self.sample_placeholder = tf.placeholder(dtype=tf.float32, shape=[sample_size, 60])
+        self.sample_placeholder = tf.placeholder(dtype=tf.float32, shape=[sample_size, 77])
         self.queue = tf.PaddingFIFOQueue(queue_size,
                                          ['float32'],
-                                         shapes=[(None, 60)])
+                                         shapes=[(None, 77)])
         self.enqueue = self.queue.enqueue([self.sample_placeholder])
 
     def dequeue(self, num_elements):
@@ -80,7 +81,7 @@ class CSVReader(object):
                     buffer_.append(data)
                     #print buffer_.shape
                     while len(buffer_) > self.sample_size:
-                        piece = np.reshape(buffer_[:self.sample_size], [-1, 60])
+                        piece = np.reshape(buffer_[:self.sample_size], [-1, 77])
                         #print(piece)
                         sess.run(self.enqueue,
                                  feed_dict={self.sample_placeholder: piece})
